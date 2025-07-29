@@ -13,13 +13,14 @@ from werkzeug.utils import secure_filename
 import os
 import logging
 import uuid
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = 'secret_key'
+app.secret_key = os.urandom(24)  # Secure random secret key
 app.config['MONGO_URI'] = "mongodb://localhost:27017/summary_app"
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/uploads')
 mongo = PyMongo(app)
@@ -42,7 +43,7 @@ try:
     mongo.db.command("ping")
     logger.info("Connected to MongoDB successfully.")
 except Exception as e:
-    logger.error(f"Failed to connect to MongoDB: {e}")
+    logger.error(f"Failed to connect to MongoDB: {str(e)}")
     print("Warning: MongoDB connection failed. Ensure MongoDB is running.")
 
 # Serve audio files from UPLOAD_FOLDER
@@ -53,14 +54,19 @@ def uploaded_file(filename):
 @app.route('/')
 def index():
     try:
+        if 'user_id' in session:
+            return redirect(url_for('home'))
         return render_template('register.html')
     except Exception as e:
-        logger.error(f"Template error: {e}")
-        return "Template not found. Please create register.html in the templates folder.", 500
+        logger.error(f"Template error on index route: {str(e)}")
+        return jsonify({"status": "fail", "message": "Unable to load page."}), 500
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     try:
+        if request.method == 'GET':
+            return render_template('register.html')
+        
         data = request.get_json()
         name = data.get('name', '').strip()
         email = data.get('email', '').strip()
@@ -84,7 +90,7 @@ def register():
 
         return jsonify({"status": "success", "message": "Registration successful! Redirecting to login..."})
     except Exception as e:
-        logger.error(f"Registration error: {e}")
+        logger.error(f"Registration error: {str(e)} with data: {data}")
         return jsonify({"status": "fail", "message": "Registration failed."}), 500
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -92,6 +98,7 @@ def login():
     try:
         if request.method == 'GET':
             return render_template('login.html')
+        
         data = request.get_json()
         identifier = data.get('identifier', '').strip()
         password = data.get('password', '').strip()
@@ -105,7 +112,7 @@ def login():
             return jsonify({"status": "success", "message": "Login successful! Redirecting to home..."})
         return jsonify({"status": "fail", "message": "Invalid email/username or password."})
     except Exception as e:
-        logger.error(f"Login error: {e}")
+        logger.error(f"Login error: {str(e)} with data: {data}")
         return jsonify({"status": "fail", "message": "Login failed."}), 500
 
 @app.route('/home')
@@ -116,8 +123,8 @@ def home():
         user = mongo.db.users.find_one({"_id": ObjectId(session['user_id'])}, {"password": 0})
         return render_template('home.html', user=user)
     except Exception as e:
-        logger.error(f"Home route error: {e}")
-        return "Error loading home page.", 500
+        logger.error(f"Home route error: {str(e)}")
+        return jsonify({"status": "fail", "message": "Unable to load home page."}), 500
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -134,7 +141,7 @@ def profile():
         user = mongo.db.users.find_one({"_id": ObjectId(user_id)}, {"password": 0})
         return jsonify(user)
     except Exception as e:
-        logger.error(f"Profile error: {e}")
+        logger.error(f"Profile error: {str(e)} with data: {data}")
         return jsonify({"status": "fail", "message": "Profile operation failed."}), 500
 
 @app.route('/summarize', methods=['POST'])
@@ -175,7 +182,7 @@ def summarize():
         key_points = ["<ul>"] + [f"<li>{sent}</li>" for sent in summary_sentences] + ["</ul>"]
         return jsonify({'summary': summary + "".join(key_points), 'status': 'File uploaded successfully'})
     except Exception as e:
-        logger.error(f"Summarize error: {e}")
+        logger.error(f"Summarize error: {str(e)} with file: {request.files.get('file')}")
         return jsonify({'error': f'Summarize failed: {str(e)}'}), 500
 
 @app.route('/translate', methods=['POST'])
@@ -191,7 +198,7 @@ def translate():
         key_points_html = ["<ul>"] + [f"<li>{point}</li>" for point in key_points if point.strip()] + ["</ul>"]
         return jsonify({"translated": summary + "".join(key_points_html)})
     except Exception as e:
-        logger.error(f"Translate error: {e}")
+        logger.error(f"Translate error: {str(e)} with data: {data}")
         return jsonify({'error': f'Translation failed: {str(e)}'}), 500
 
 @app.route('/speak', methods=['POST'])
@@ -215,7 +222,7 @@ def speak():
         # Return the URL that the client can use to access the file
         return jsonify({'audio_path': f'/uploads/{audio_filename}'})
     except Exception as e:
-        logger.error(f"Speak error: {e}")
+        logger.error(f"Speak error: {str(e)} with data: {data}")
         return jsonify({'error': f'Text-to-speech failed: {str(e)}'}), 500
 
 @app.route('/logout')
@@ -224,8 +231,8 @@ def logout():
         session.pop('user_id', None)
         return redirect(url_for('login'))
     except Exception as e:
-        logger.error(f"Logout error: {e}")
-        return "Error during logout.", 500
+        logger.error(f"Logout error: {str(e)}")
+        return jsonify({"status": "fail", "message": "Unable to logout."}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

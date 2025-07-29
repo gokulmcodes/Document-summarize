@@ -7,9 +7,24 @@
 
 body {
   font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f7f9fc;
   color: #2d3748;
   line-height: 1.6;
+  height: 100vh; /* Ensure body takes full height for background */
+}
+
+.login-body, .register-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes backgroundFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Navbar Styles */
@@ -47,12 +62,29 @@ body {
   padding: 0 1rem;
 }
 
-.form-container {
-  background-color: #ffffff;
-  padding: 2rem;
+.login-container, .register-container {
+  background: rgba(32, 32, 32, 0.5); /* Black transparent glass */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   animation: fadeInUp 0.5s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  width: 90%;
+  max-width: 450px;
+  margin-top: 6rem;
+}
+
+.login-container:hover, .register-container:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.register-container {
+  align-self: flex-start; /* Align to top as per original design */
 }
 
 @keyframes fadeInUp {
@@ -70,16 +102,19 @@ input, select, textarea {
   width: 100%;
   padding: 0.75rem;
   margin: 0.5rem 0;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.5);
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: #1abc9c;
   box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
   outline: none;
+  transform: scale(1.01);
 }
 
 button {
@@ -246,5 +281,10 @@ footer {
 
   .about-image {
     margin-top: 1.5rem;
+  }
+
+  .login-container, .register-container {
+    margin: 1rem;
+    width: 90%;
   }
 }
