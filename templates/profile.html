@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <title>Profile</title>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/home">Home</a>
+    <a href="/features">Features</a>
+    <a href="/about">About</a>
+    <a href="/profile" class="active">Profile</a>
+    <a href="/logout">Logout</a>
+  </nav>
+
+  <div class="form-container">
+    <h2>Your Profile</h2>
+    <form id="profileForm">
+      <input type="text" id="name" name="name" placeholder="Name" required>
+      <input type="email" id="email" name="email" placeholder="Email" required>
+      <input type="tel" id="phone" name="phone" placeholder="Phone Number" required>
+      <button type="submit">Update Profile</button>
+    </form>
+  </div>
+
+  <script>
+    async function loadProfile() {
+      const response = await fetch('/profile');
+      const data = await response.json();
+      document.getElementById('name').value = data.name || '';
+      document.getElementById('email').value = data.email || '';
+      document.getElementById('phone').value = data.phone || '';
+    }
+
+    document.getElementById('profileForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const phone = document.getElementById('phone').value;
+
+      const response = await fetch('/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, phone })
+      });
+
+      const result = await response.json();
+      if (result.status === 'updated') {
+        alert("Profile updated successfully!");
+      } else {
+        alert("Update failed.");
+      }
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>

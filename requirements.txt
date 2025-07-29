@@ -1,0 +1,11 @@
+flask
+flask_pymongo
+flask_cors
+werkzeug
+gTTS
+langdetect
+deep-translator
+python-docx
+PyPDF2
+openpyxl
+

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/home">Home</a>
+    <a href="/features">Features</a>
+    <a href="/about" class="active">About</a>
+    <a href="/profile">Profile</a>
+    <a href="/logout">Logout</a>
+  </nav>
+
+  <section class="content-section">
+    <h1 class="section-title">About Our Platform</h1>
+    <p>
+      We built this platform to make document understanding simpler, smarter, and more accessible. Whether you're a student, researcher, or professional, you can quickly extract essential information, listen to it, or translate it into your native language.
+    </p>
+    <div class="about-image">
+      <img src="/static/images/about-team.jpg" alt="Our Team" />
+    </div>
+    <p>
+      Our mission is to harness the power of artificial intelligence to enhance productivity and break language barriers. We're constantly innovating to bring you the best tools for knowledge extraction.
+    </p>
+  </section>
+</body>
+</html>

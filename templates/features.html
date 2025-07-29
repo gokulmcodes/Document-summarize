@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Features</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/home">Home</a>
+    <a href="/features" class="active">Features</a>
+    <a href="/about">About</a>
+    <a href="/profile">Profile</a>
+    <a href="/logout">Logout</a>
+  </nav>
+
+  <section class="content-section">
+    <h1 class="section-title">Platform Features</h1>
+    <div class="feature-box">
+      <img src="/static/images/feature1.png" alt="Summarize Docs" />
+      <div>
+        <h3>Smart Summarization</h3>
+        <p>Upload your documents and instantly get a concise summary with key insights highlighted.</p>
+      </div>
+    </div>
+    <div class="feature-box">
+      <img src="/static/images/feature2.png" alt="Text to Speech" />
+      <div>
+        <h3>Text-to-Speech</h3>
+        <p>Let your summary speak for itself with integrated voice playback in natural tone.</p>
+      </div>
+    </div>
+    <div class="feature-box">
+      <img src="/static/images/feature3.png" alt="Translation" />
+      <div>
+        <h3>Translation</h3>
+        <p>Translate summarized results into multiple languages for global understanding.</p>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
