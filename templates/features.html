@@ -5,39 +5,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Features</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .content-section {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-box {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      animation: slideInFromLeft 0.6s ease-out backwards;
+    }
+
+    .feature-box:nth-child(2) { animation-delay: 0.2s; }
+    .feature-box:nth-child(3) { animation-delay: 0.4s; }
+    .feature-box:nth-child(4) { animation-delay: 0.6s; }
+
+    .feature-box:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 40px rgba(26, 188, 156, 0.3);
+    }
+
+    .feature-box img {
+      width: 100px;
+      margin-right: 2rem;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-box:hover img {
+      transform: rotate(5deg) scale(1.1);
+    }
+
+    .feature-video {
+      width: 100%;
+      max-width: 600px;
+      margin: 2rem auto;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      animation: fadeInUp 0.5s ease-out backwards;
+    }
+
+    @keyframes slideInFromLeft {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
-    <a href="/home">Home</a>
-    <a href="/features" class="active">Features</a>
-    <a href="/about">About</a>
-    <a href="/profile">Profile</a>
-    <a href="/logout">Logout</a>
+    <a href="/home" class="brand">DocSummarizer</a>
+    <button class="menu-toggle" id="menu-toggle">&#9776;</button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/home">Home</a></li>
+      <li><a href="/features" class="active">Features</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/profile">Profile</a></li>
+      <li><a href="/logout">Logout</a></li>
+    </ul>
   </nav>
 
   <section class="content-section">
-    <h1 class="section-title">Platform Features</h1>
+    <h1 class="section-title" style="color: #1abc9c; text-align: center; padding: 1rem;">Platform Features</h1>
     <div class="feature-box">
-      <img src="/static/images/feature1.png" alt="Summarize Docs" />
+      <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Summarize Docs" />
       <div>
-        <h3>Smart Summarization</h3>
-        <p>Upload your documents and instantly get a concise summary with key insights highlighted.</p>
+        <h3 style="color: #ffffff;">Smart Summarization</h3>
+        <p style="color: #dcdcdc;">Upload PDFs, DOCs, or URLs and receive concise summaries with key insights highlighted using advanced NLP techniques.</p>
       </div>
     </div>
     <div class="feature-box">
-      <img src="/static/images/feature2.png" alt="Text to Speech" />
+      <img src="https://uploads-ssl.webflow.com/5f57aae9cf84e83399ba0032/62b264ced6e2c5184b2ce2d4_The%208%20Best%20TTS%20Voice%20Providers.jpg" alt="Text to Speech" />
       <div>
-        <h3>Text-to-Speech</h3>
-        <p>Let your summary speak for itself with integrated voice playback in natural tone.</p>
+        <h3 style="color: #ffffff;">Text-to-Speech</h3>
+        <p style="color: #dcdcdc;">Convert summaries into natural voice playback in multiple languages, perfect for hands-free learning.</p>
       </div>
     </div>
     <div class="feature-box">
-      <img src="/static/images/feature3.png" alt="Translation" />
+      <img src="https://images.unsplash.com/photo-1522252234503-e356532cafd5?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Translation" />
       <div>
-        <h3>Translation</h3>
-        <p>Translate summarized results into multiple languages for global understanding.</p>
+        <h3 style="color: #ffffff;">Multi-Language Translation</h3>
+        <p style="color: #dcdcdc;">Translate summaries into languages like Hindi, Tamil, and more, breaking global communication barriers.</p>
       </div>
+    </div>
+    <div class="feature-box">
+      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80" alt="Analytics" />
+      <div>
+        <h3 style="color: #ffffff;">Content Analytics</h3>
+        <p style="color: #dcdcdc;">Get detailed insights into document structure, key entities, and sentiment analysis for deeper understanding.</p>
+      </div>
+    </div>
+    <div class="feature-video">
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/FsxK8RevcJo?si=VtM4u772UwOyiKA5" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>      <p style="color: #dcdcdc; text-align: center;">Watch how Smart Summarization works (Source: YouTube)</p>
+    </div>
+    <div class="feature-video">
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/w09b30BI0lk?si=t-x7T8FSLe0p0_J9" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>      <p style="color: #dcdcdc; text-align: center;">Demo of Text-to-Speech feature (Source: YouTube)</p>
     </div>
   </section>
+
+  <script>
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+      document.getElementById('nav-links').classList.toggle('active');
+    });
+  </script>
 </body>
 </html>
