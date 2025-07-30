@@ -32,12 +32,10 @@
       100% { background-color: #e6fffa; }
     }
 
-    /* Override input text color for URL input on home page */
     #urlInput {
-      color: #000000 !important; /* Force black text color */
+      color: #000000 !important;
     }
 
-    /* Style for drag-and-drop area */
     #drop-area {
       border: 2px dashed #a0aec0;
       padding: 20px;
@@ -55,9 +53,77 @@
     #file-upload-btn {
       margin-top: 10px;
     }
+
+    #queryBtn {
+      margin-left: 1rem;
+      padding: 0.75rem 1.5rem;
+      background-color: #e6fffa;
+      color: #000000;
+      border: 1px solid #a0aec0;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #queryBtn.active {
+      background-color: #1abc9c;
+      color: #000000;
+    }
+
+    #queryContainer {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 350px;
+      padding: 1.5rem;
+      background-color: #2d3748; /* Dark theme */
+      border: 1px solid #4a5568;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    #queryInput {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #4a5568;
+      border-radius: 0.375rem;
+      background-color: #edf2f7;
+      color: #000000;
+    }
+
+    #queryAnswer {
+      margin-top: 1rem;
+      color: #ffffff; /* White text for contrast on dark background */
+      line-height: 1.5;
+    }
+
+    #closeQueryBtn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      background-color: #4a5568; /* Dark close button */
+      color: #ffffff;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #closeQueryBtn:hover {
+      background-color: #718096;
+    }
+
+    #languageSelect option {
+      color: #000000; /* Black text for dropdown options */
+    }
   </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100 font-sans text-black">
   <nav class="navbar">
     <a href="/home" class="brand">DocSummarizer</a>
     <button class="menu-toggle" id="menu-toggle">&#9776;</button>
@@ -72,32 +138,28 @@
 
   <div class="container mx-auto p-6">
     <div class="bg-white rounded-xl shadow-2xl p-8 mb-6 transform transition duration-300 hover:scale-101">
-      <h2 class="text-3xl font-semibold text-gray-800 mb-6">Advanced Document Summarizer</h2>
+      <h2 class="text-3xl font-semibold text-black mb-6">Advanced Document Summarizer</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Search Bar Section -->
         <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
-          <label for="urlInput" class="block text-sm font-medium text-gray-700">Enter URL to Summarize</label>
+          <label for="urlInput" class="block text-sm font-medium text-black">Enter URL to Summarize</label>
           <div class="mt-1 flex rounded-md shadow-sm">
             <input type="text" id="urlInput" class="flex-1 block w-full rounded-md border-gray-300 focus:border-teal-500 focus:ring-teal-500 sm:text-sm p-2" placeholder="Paste URL here...">
           </div>
         </div>
-
-        <!-- File Upload Section -->
         <div class="bg-gray-50 p-4 rounded-lg shadow-inner">
-          <label class="block text-sm font-medium text-gray-700">Upload File</label>
+          <label class="block text-sm font-medium text-black">Upload Files</label>
           <div id="drop-area" class="mt-1">
-            <p class="text-gray-600">Drag & Drop your file here (PDF, DOC, DOCX)</p>
-            <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="hidden">
+            <p class="text-black">Drag & Drop your files here (PDF, DOC, DOCX)</p>
+            <input type="file" id="fileInput" accept=".pdf,.doc,.docx" class="hidden" multiple>
           </div>
-          <button id="file-upload-btn" class="mt-2 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none">Choose File</button>
-          <div id="fileInfo" class="text-sm text-gray-500 mt-2"></div>
+          <button id="file-upload-btn" class="mt-2 px-4 py-2 bg-teal-600 text-black rounded-md hover:bg-teal-700 focus:outline-none">Choose Files</button>
+          <div id="fileInfo" class="text-sm text-black mt-2"></div>
         </div>
       </div>
-
-      <button id="summarizeBtn" class="mt-6 w-full md:w-auto px-6 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-300">Summarize</button>
-
+      <button id="summarizeBtn" class="mt-6 w-full md:w-auto px-6 py-3 bg-teal-600 text-black rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-300">Summarize</button>
+      <button id="queryBtn" class="mt-6 w-full md:w-auto px-6 py-3">Query</button>
       <div class="language-controls mt-4 flex items-center space-x-2">
-        <button id="translateToggle" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none">🌐 Translate</button>
+        <button id="translateToggle" class="px-4 py-2 bg-gray-200 text-black rounded-md hover:bg-gray-300 focus:outline-none">🌐 Translate</button>
         <select id="languageSelect" class="hidden px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
           <option value="en">English</option>
           <option value="hi">Hindi</option>
@@ -107,69 +169,64 @@
           <option value="ur">Urdu</option>
         </select>
       </div>
-
       <div id="loader" class="loader hidden"></div>
-
       <div id="result" class="result-box mt-6 p-6 bg-gray-50 rounded-lg shadow-inner">
-        <div id="summaryText" class="text-gray-800 leading-relaxed"></div>
-        <button id="speakButton" class="mt-4 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none">🔊 Speak</button>
+        <div id="summaryText" class="text-black leading-relaxed"></div>
+        <button id="speakButton" class="mt-4 px-4 py-2 bg-teal-600 text-black rounded-md hover:bg-teal-700 focus:outline-none">🔊 Speak</button>
         <audio id="audioPlayer" controls class="mt-2 w-full max-w-xs"></audio>
+      </div>
+      <div id="queryContainer">
+        <button id="closeQueryBtn">×</button>
+        <input type="text" id="queryInput" placeholder="What can I help you?">
+        <div id="queryAnswer" class="mt-2"></div>
       </div>
     </div>
   </div>
 
   <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   <script>
-    document.getElementById('file-upload-btn').addEventListener('click', function() {
-      document.getElementById('fileInput').click();
-    });
-
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        document.getElementById('fileInfo').textContent = `Selected: ${file.name}`;
+    document.getElementById('file-upload-btn').addEventListener('click', () => document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const files = e.target.files;
+      if (files.length > 0) {
+        const fileList = Array.from(files).map(file => file.name).join(', ');
+        document.getElementById('fileInfo').textContent = `Selected: ${fileList}`;
         document.getElementById('fileInfo').style.display = 'block';
-        alert('File uploaded successfully!'); // Popup message
+        alert('Files uploaded successfully!');
       }
     });
 
     const dropArea = document.getElementById('drop-area');
-    dropArea.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropArea.classList.add('highlight');
+    ['dragover', 'dragleave', 'drop'].forEach(event => {
+      dropArea.addEventListener(event, (e) => {
+        e.preventDefault();
+        if (event === 'dragover') dropArea.classList.add('highlight');
+        else dropArea.classList.remove('highlight');
+      });
     });
-
-    dropArea.addEventListener('dragleave', function(e) {
-      e.preventDefault();
-      dropArea.classList.remove('highlight');
-    });
-
-    dropArea.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropArea.classList.remove('highlight');
-      const file = e.dataTransfer.files[0];
-      if (file && (file.type === 'application/pdf' || file.name.endsWith('.doc') || file.name.endsWith('.docx'))) {
+    dropArea.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && Array.from(files).every(file => file.type === 'application/pdf' || file.name.endsWith('.doc') || file.name.endsWith('.docx'))) {
         const fileInput = document.getElementById('fileInput');
         fileInput.files = e.dataTransfer.files;
-        document.getElementById('fileInfo').textContent = `Dropped: ${file.name}`;
+        const fileList = Array.from(files).map(file => file.name).join(', ');
+        document.getElementById('fileInfo').textContent = `Dropped: ${fileList}`;
         document.getElementById('fileInfo').style.display = 'block';
-        alert('File uploaded successfully!'); // Popup message
+        alert('Files uploaded successfully!');
       }
     });
 
     let summarizedText = '';
 
-    document.getElementById('summarizeBtn').addEventListener('click', function() {
+    document.getElementById('summarizeBtn').addEventListener('click', () => {
       const url = document.getElementById('urlInput').value.trim();
-      const file = document.getElementById('fileInput').files[0];
+      const files = document.getElementById('fileInput').files;
       const formData = new FormData();
 
-      if (url) {
-        formData.append('url', url);
-      } else if (file) {
-        formData.append('file', file);
-      } else {
-        alert('Please provide a URL or upload a file.');
+      if (url) formData.append('url', url);
+      else if (files.length > 0) Array.from(files).forEach(file => formData.append('files', file));
+      else {
+        alert('Please provide a URL or upload files.');
         return;
       }
 
@@ -177,35 +234,31 @@
       const result = document.getElementById('result');
       const summaryText = document.getElementById('summaryText');
       loader.classList.remove('hidden');
-      result.classList.remove('hidden'); // Ensure result is visible
+      result.classList.remove('hidden');
 
-      fetch('/summarize', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        loader.classList.add('hidden');
-        if (data.error) {
-          summaryText.textContent = data.error;
-        } else {
-          summarizedText = data.summary; // Store the summarized text
-          summaryText.innerHTML = summarizedText;
-        }
-      })
-      .catch(error => {
-        loader.classList.add('hidden');
-        summaryText.textContent = 'Error processing request.';
-      });
+      fetch('/summarize', { method: 'POST', body: formData })
+        .then(response => response.json())
+        .then(data => {
+          loader.classList.add('hidden');
+          if (data.error) summaryText.textContent = data.error;
+          else {
+            summarizedText = data.summary;
+            summaryText.innerHTML = summarizedText;
+            document.getElementById('queryBtn').classList.add('active');
+          }
+        })
+        .catch(() => {
+          loader.classList.add('hidden');
+          summaryText.textContent = 'Error processing request.';
+        });
     });
 
-    document.getElementById('translateToggle').addEventListener('click', function() {
-      const select = document.getElementById('languageSelect');
-      select.classList.toggle('hidden');
+    document.getElementById('translateToggle').addEventListener('click', () => {
+      document.getElementById('languageSelect').classList.toggle('hidden');
     });
 
-    document.getElementById('languageSelect').addEventListener('change', function() {
-      const lang = this.value;
+    document.getElementById('languageSelect').addEventListener('change', (e) => {
+      const lang = e.target.value; // Correctly get the selected value
       const summaryText = document.getElementById('summaryText');
       if (summarizedText && lang) {
         fetch('/translate', {
@@ -213,46 +266,64 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: summarizedText, lang: lang })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            summaryText.textContent = data.error;
-          } else {
-            summaryText.innerHTML = data.translated;
-          }
-        })
-        .catch(error => {
-          summaryText.textContent = 'Translation failed.';
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) summaryText.textContent = data.error;
+            else {
+              summarizedText = data.translated; // Update summarizedText with translated version
+              summaryText.innerHTML = summarizedText;
+            }
+          })
+          .catch(() => summaryText.textContent = 'Translation failed.');
       }
     });
 
-    document.getElementById('speakButton').addEventListener('click', function() {
+    document.getElementById('speakButton').addEventListener('click', () => {
       const text = document.getElementById('summaryText').textContent;
       const lang = document.getElementById('languageSelect').value || 'en';
       if (text) {
         fetch('/speak', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: text, lang: lang })
+          body: JSON.stringify({ text, lang })
         })
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            alert(data.error);
-          } else {
-            document.getElementById('audioPlayer').src = data.audio_path;
-            document.getElementById('audioPlayer').play();
-          }
-        })
-        .catch(error => {
-          alert('Error generating speech.');
-        });
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) alert(data.error);
+            else {
+              document.getElementById('audioPlayer').src = data.audio_path;
+              document.getElementById('audioPlayer').play();
+            }
+          })
+          .catch(() => alert('Error generating speech.'));
       }
     });
 
-    // Toggle mobile menu
-    document.getElementById('menu-toggle').addEventListener('click', function() {
+    document.getElementById('queryBtn').addEventListener('click', () => {
+      if (summarizedText && document.getElementById('queryBtn').classList.contains('active')) {
+        document.getElementById('queryContainer').style.display = 'block';
+        document.getElementById('queryInput').focus();
+      }
+    });
+
+    document.getElementById('queryInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && summarizedText) {
+        const query = e.target.value.trim().toLowerCase();
+        const queryAnswer = document.getElementById('queryAnswer');
+        if (query) {
+          const sentences = summarizedText.toLowerCase().split('. ');
+          const relevantSentence = sentences.find(sentence => sentence.includes(query));
+          queryAnswer.textContent = relevantSentence ? `${relevantSentence.charAt(0).toUpperCase() + relevantSentence.slice(1).split('.')[0]}.` : 'No relevant answer found.';
+          e.target.value = '';
+        }
+      }
+    });
+
+    document.getElementById('closeQueryBtn').addEventListener('click', () => {
+      document.getElementById('queryContainer').style.display = 'none';
+    });
+
+    document.getElementById('menu-toggle').addEventListener('click', () => {
       document.getElementById('nav-links').classList.toggle('active');
     });
   </script>

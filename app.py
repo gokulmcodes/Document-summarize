@@ -13,32 +13,28 @@ from werkzeug.utils import secure_filename
 import os
 import logging
 import uuid
-from newspaper import Article  # For fetching content from URLs
+from newspaper import Article
 
-# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Secure random secret key
+app.secret_key = os.urandom(24)
 app.config['MONGO_URI'] = "mongodb://localhost:27017/summary_app"
 app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static/uploads')
 mongo = PyMongo(app)
 CORS(app)
 
-# Load spaCy model
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
     logger.error("spaCy model 'en_core_web_sm' not found. Please run: python -m spacy download en_core_web_sm")
     raise
 
-# Ensure upload folder exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
     logger.info(f"Created upload folder: {app.config['UPLOAD_FOLDER']}")
 
-# Check MongoDB connection
 try:
     mongo.db.command("ping")
     logger.info("Connected to MongoDB successfully.")
@@ -46,7 +42,6 @@ except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {str(e)}")
     print("Warning: MongoDB connection failed. Ensure MongoDB is running.")
 
-# Serve audio files from UPLOAD_FOLDER
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
@@ -54,11 +49,9 @@ def uploaded_file(filename):
 @app.route('/')
 def index():
     try:
-        if 'user_id' in session:
-            return redirect(url_for('home'))
-        return render_template('register.html')
+        return redirect(url_for('home' if 'user_id' in session else 'login'))
     except Exception as e:
-        logger.error(f"Template error on index route: {str(e)}")
+        logger.error(f"Index route error: {str(e)}")
         return jsonify({"status": "fail", "message": "Unable to load page."}), 500
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -66,28 +59,13 @@ def register():
     try:
         if request.method == 'GET':
             return render_template('register.html')
-        
         data = request.get_json()
-        name = data.get('name', '').strip()
-        email = data.get('email', '').strip()
-        username = data.get('username', '').strip()
-        password = data.get('password', '').strip()
-
-        if not all([name, email, username, password]):
+        if not all([data.get(k, '').strip() for k in ['name', 'email', 'username', 'password']]):
             return jsonify({"status": "fail", "message": "All fields are required."})
-
-        existing_user = mongo.db.users.find_one({"$or": [{"email": email}, {"username": username}]})
-        if existing_user:
+        if mongo.db.users.find_one({"$or": [{"email": data['email']}, {"username": data['username']}]}):
             return jsonify({"status": "fail", "message": "Email or username already exists."})
-
-        hashed_pw = generate_password_hash(password)
-        mongo.db.users.insert_one({
-            "name": name,
-            "email": email,
-            "username": username,
-            "password": hashed_pw
-        })
-
+        hashed_pw = generate_password_hash(data['password'])
+        mongo.db.users.insert_one({k: data[k] for k in ['name', 'email', 'username']} | {"password": hashed_pw})
         return jsonify({"status": "success", "message": "Registration successful! Redirecting to login..."})
     except Exception as e:
         logger.error(f"Registration error: {str(e)} with data: {data}")
@@ -98,15 +76,9 @@ def login():
     try:
         if request.method == 'GET':
             return render_template('login.html')
-        
         data = request.get_json()
-        identifier = data.get('identifier', '').strip()
-        password = data.get('password', '').strip()
-
-        user = mongo.db.users.find_one({
-            "$or": [{"email": identifier}, {"username": identifier}]
-        })
-
+        identifier, password = data.get('identifier', '').strip(), data.get('password', '').strip()
+        user = mongo.db.users.find_one({"$or": [{"email": identifier}, {"username": identifier}]})
         if user and check_password_hash(user['password'], password):
             session['user_id'] = str(user['_id'])
             return jsonify({"status": "success", "message": "Login successful! Redirecting to home..."})
@@ -152,12 +124,10 @@ def profile():
         user_id = session.get('user_id')
         if not user_id:
             return redirect(url_for('index'))
-
         if request.method == 'POST':
             data = request.json
             mongo.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": data})
             return jsonify({"status": "updated"})
-
         user = mongo.db.users.find_one({"_id": ObjectId(user_id)}, {"password": 0})
         return render_template('profile.html', user=user)
     except Exception as e:
@@ -168,78 +138,64 @@ def profile():
 def summarize():
     try:
         text = ""
-        url = request.form.get('url', '').strip()  # Get URL from input
-        file = request.files.get('file') if 'file' in request.files else None
+        url = request.form.get('url', '').strip()
+        files = request.files.getlist('files') if 'files' in request.files else []
 
-        # Determine source and process content
         if url:
             try:
                 article = Article(url)
                 article.download()
                 article.parse()
-                text = article.text
+                text += article.text + "\n"
             except Exception as e:
-                return jsonify({'error': f'Failed to fetch URL content: {str(e)}'})
-        elif file:
-            filename = secure_filename(file.filename)
-            if not (file and filename.lower().endswith(('.pdf', '.doc', '.docx'))):
-                return jsonify({'error': 'Only PDF, DOC, and DOCX files are supported.'})
-            
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+                return jsonify({'error': f'Failed to fetch URL: {str(e)}'})
 
-            if filename.lower().endswith('.pdf'):
-                with pdfplumber.open(filepath) as pdf:
-                    text = "".join(page.extract_text() or "" for page in pdf.pages)
-            elif filename.lower().endswith(('.doc', '.docx')):
-                doc = docx.Document(filepath)
-                text = "\n".join(para.text.strip() for para in doc.paragraphs if para.text.strip())
-        else:
-            return jsonify({'error': 'No URL or file provided'})
+        if files:
+            for file in files:
+                filename = secure_filename(file.filename)
+                if not filename.lower().endswith(('.pdf', '.doc', '.docx')):
+                    return jsonify({'error': 'Only PDF, DOC, and DOCX files are supported.'})
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                if filename.lower().endswith('.pdf'):
+                    with pdfplumber.open(filepath) as pdf:
+                        text += "".join(page.extract_text() or "" for page in pdf.pages) + "\n"
+                elif filename.lower().endswith(('.doc', '.docx')):
+                    doc = docx.Document(filepath)
+                    text += "\n".join(para.text.strip() for para in doc.paragraphs if para.text.strip()) + "\n"
 
         if not text.strip():
             return jsonify({'error': 'No content to summarize'})
 
-        # Enhanced summarization logic
         doc = nlp(text)
-        sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 10]  # Filter short sentences
+        sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 10]
         if not sentences:
-            return jsonify({'error': 'No valid sentences to summarize'})
+            return jsonify({'error': 'No valid content to summarize'})
 
-        # Calculate sentence importance
-        keyword_scores = {}
-        for token in doc:
-            if token.text.lower() not in nlp.Defaults.stop_words and token.is_alpha:
-                keyword_scores[token.text.lower()] = keyword_scores.get(token.text.lower(), 0) + token.sentiment  # Use sentiment for weighting
-
-        entity_weight = {}
-        for ent in doc.ents:
-            entity_weight[ent.text.lower()] = entity_weight.get(ent.text.lower(), 0) + 1  # Weight by entity frequency
-
+        # Enhanced summarization with flow
+        keyword_weights = {token.text.lower(): token.sentiment + 0.1 for token in doc if token.is_alpha and token.pos_ in ['NOUN', 'VERB', 'ADJ'] and token.text.lower() not in nlp.Defaults.stop_words}
+        entity_weights = {ent.text.lower(): len(ent.text.split()) * 0.5 for ent in doc.ents}
         sentence_scores = {}
+
         for i, sent in enumerate(sentences):
-            score = 0
             words = sent.lower().split()
-            # Boost score for keywords and entities
-            score += sum(keyword_scores.get(word, 0) for word in words if word in keyword_scores) * 0.6
-            score += sum(entity_weight.get(word, 0) for word in words if word in entity_weight) * 0.4
-            # Boost opening and closing sentences
+            score = sum(keyword_weights.get(word, 0) for word in words) * 0.6 + sum(entity_weights.get(word, 0) for word in words) * 0.3
             if i < len(sentences) * 0.1 or i > len(sentences) * 0.9:
                 score += 0.2
-            sentence_scores[i] = score / max(len(words), 1)  # Normalize by sentence length
+            sentence_scores[i] = score / max(len(words), 1)
 
-        # Select top 4-5 sentences for a detailed summary
-        num_sentences = min(max(4, len(sentences) // 10), 5)  # Dynamic based on content length
+        num_sentences = min(max(3, int(len(sentences) * 0.25)), 5)
         top_indices = sorted(sentence_scores, key=sentence_scores.get, reverse=True)[:num_sentences]
         summary_sentences = [sentences[i] for i in sorted(top_indices)]
 
-        # Construct summary with HTML formatting
-        summary = "<p>" + ". ".join(summary_sentences) + ".</p>"
-        key_points = ["<ul>"] + [f"<li>{sent.strip()}</li>" for sent in summary_sentences] + ["</ul>"]
+        # Create a flowing summary
+        summary = " ".join(summary_sentences).replace('\n', ' ').strip()
+        summary = re.sub(r'\s+', ' ', summary)  # Normalize spaces
+        summary = f"The document highlights that {summary}. It provides key insights including {', '.join(summary_sentences[:2])}. Overall, the main focus is on {summary_sentences[-1].lower().replace('.', '')}."
 
-        return jsonify({'summary': summary + "".join(key_points), 'status': 'Content processed successfully'})
+        return jsonify({'summary': summary, 'status': 'Content processed successfully'})
     except Exception as e:
-        logger.error(f"Summarize error: {str(e)} with url: {url}, file: {file}")
+        logger.error(f"Summarize error: {str(e)} with url: {url}, files: {files}")
         return jsonify({'error': f'Summarize failed: {str(e)}'}), 500
 
 @app.route('/translate', methods=['POST'])
@@ -248,23 +204,11 @@ def translate():
         data = request.get_json()
         text = data.get('text', '')
         lang = data.get('lang', 'en')
-
-        supported_langs = {
-            'en': 'English',
-            'hi': 'Hindi',
-            'kn': 'Kannada',
-            'ta': 'Tamil',
-            'te': 'Telugu',
-            'ur': 'Urdu'
-        }
+        supported_langs = {'en': 'English', 'hi': 'Hindi', 'kn': 'Kannada', 'ta': 'Tamil', 'te': 'Telugu', 'ur': 'Urdu'}
         if lang not in supported_langs:
             return jsonify({'error': 'Unsupported language'})
-
         translated = GoogleTranslator(source='auto', target=lang).translate(text)
-        summary = f"<p>{translated}</p>"
-        key_points = translated.split('. ')
-        key_points_html = ["<ul>"] + [f"<li>{point}</li>" for point in key_points if point.strip()] + ["</ul>"]
-        return jsonify({"translated": summary + "".join(key_points_html), "language": supported_langs[lang]})
+        return jsonify({"translated": translated, "language": supported_langs[lang]})
     except Exception as e:
         logger.error(f"Translate error: {str(e)} with data: {data}")
         return jsonify({'error': f'Translation failed: {str(e)}'}), 500
@@ -275,17 +219,13 @@ def speak():
         data = request.get_json()
         text = data.get('text', '').strip()
         lang = data.get('lang', 'en')
-
         if not text:
             return jsonify({'error': 'No text to speak'}), 400
-
         audio_filename = f"speech_{uuid.uuid4().hex}.mp3"
         audio_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
-
         tts = gTTS(text=text, lang=lang, tld='co.uk')
         tts.save(audio_path)
         logger.info(f"Audio file generated: {audio_path}")
-
         return jsonify({'audio_path': f'/uploads/{audio_filename}'})
     except Exception as e:
         logger.error(f"Speak error: {str(e)} with data: {data}")
